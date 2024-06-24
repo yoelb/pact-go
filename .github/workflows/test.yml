@@ -95,8 +95,8 @@ jobs:
         run: |
           docker run \
             --rm \
-            -v $(pwd):/${{ github.workspace }} \
-            -w ${{ github.workspace }} \
+            -v $(pwd):/go/src/github.com/pact-foundation/pact-go \
+            -w /go/src/github.com/pact-foundation/pact-go \
             -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
             --platform linux/${{ matrix.arch }} \
             --entrypoint /bin/sh \
@@ -108,8 +108,8 @@ jobs:
         run: |
           docker run \
             --rm \
-            -v $(pwd):/${{ github.workspace }} \
-            -w ${{ github.workspace }} \
+            -v $(pwd):/go/src/github.com/pact-foundation/pact-go \
+            -w /go/src/github.com/pact-foundation/pact-go \
             -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
             --platform linux/${{ matrix.arch }} \
             --entrypoint /bin/sh \
