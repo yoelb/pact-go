@@ -38,6 +38,8 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+      - if: matrix.os == 'macos-14'
+        run: brew install protobuf
       - name: Test
         if: matrix.os == 'ubuntu-latest'
         run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
@@ -57,8 +59,53 @@ jobs:
           path: ~/.pact/plugins/**/plugin.log
         if: ${{ always() }}
 
+  test-containers:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.arch }}-${{ matrix.distro }}-test-container
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - amd64 
+          # - arm64
+        distro:
+          - "mcr.microsoft.com/dotnet/sdk:8.0"
+          - "mcr.microsoft.com/dotnet/sdk:8.0-alpine"
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up QEMU
+        if: matrix.arch != 'amd64'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: ${{ matrix.arch }}
+
+      - name: Docker dependencies
+        id: docker_commands
+        shell: bash
+        run: |
+          if [[ ${{ matrix.distro }} == *"alpine"* ]]; then
+            echo "deps=apk add --no-cache curl bash gzip && " >> "$GITHUB_OUTPUT"
+          else
+            echo "deps=" >> "$GITHUB_OUTPUT"
+          fi
+  
+      - name: Restore, Build & Test
+        run: |
+          docker run \
+            --rm \
+            -v $(pwd):/${{ github.workspace }} \
+            -w ${{ github.workspace }} \
+            --platform linux/${{ matrix.arch }} \
+            --entrypoint /bin/sh \
+            ${{ matrix.distro }} \
+            -c '${{ steps.docker_commands.outputs.deps }} \
+            build/download-native-libs.sh && \
+            dotnet restore && dotnet build --no-restore && \
+            dotnet test --no-build --verbosity normal'            
+
   finish:
-    needs: test
+    needs: [test,test-containers]
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
