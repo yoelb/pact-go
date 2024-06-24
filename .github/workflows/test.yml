@@ -77,7 +77,7 @@ jobs:
         with:
           platforms: ${{ matrix.arch }}
 
-      - name: Build amd64 dockerfile 
+      - name: Build ${{ matrix.arch }} dockerfile 
         run: |
           docker build \
             --platform ${{ matrix.arch }} \
@@ -85,15 +85,33 @@ jobs:
             -f Dockerfile \
             -t pactfoundation/pact-go-test-${{ matrix.go-version }} .
       - name: Test (unit) - ${{ matrix.arch }}
+        if: matrix.arch == 'amd64'
         run: |
           docker run \
           --platform linux/${{ matrix.arch }} \
           -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
           --rm pactfoundation/pact-go-test-${{ matrix.go-version }}
       - name: Test (pact) - ${{ matrix.arch }}
+        if: matrix.arch == 'amd64'
         run: |
           docker run \
           --platform linux/${{ matrix.arch }} \
+          -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
+          --rm pactfoundation/pact-go-test-${{ matrix.go-version }} make pact_local
+      - name: Test (unit) - ${{ matrix.arch }}
+        if: matrix.arch == 'arm64'
+        run: |
+          docker run \
+          --platform linux/${{ matrix.arch }} \
+          -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
+          -e SKIP_RACE=true \
+          --rm pactfoundation/pact-go-test-${{ matrix.go-version }}
+      - name: Test (pact) - ${{ matrix.arch }}
+        if: matrix.arch == 'arm64'
+        run: |
+          docker run \
+          --platform linux/${{ matrix.arch }} \
+          -e SKIP_RACE=true \
           -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
           --rm pactfoundation/pact-go-test-${{ matrix.go-version }} make pact_local
 
