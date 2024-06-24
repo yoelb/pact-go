@@ -102,7 +102,7 @@ jobs:
             --entrypoint /bin/sh \
             ${{ matrix.distro }} \
             -c '${{ steps.docker_commands.outputs.deps }} \
-            make test
+            make test'
 
       - name: Test (pact)
         run: |
@@ -115,7 +115,7 @@ jobs:
             --entrypoint /bin/sh \
             ${{ matrix.distro }} \
             -c '${{ steps.docker_commands.outputs.deps }} \
-            make pact_local
+            make pact_local'
 
   finish:
     needs: [test,test-containers]
