@@ -61,18 +61,14 @@ jobs:
 
   test-containers:
     runs-on: ubuntu-latest
-    name: ${{ matrix.arch }}-${{ matrix.distro }}-test-container
+    name: ${{ matrix.arch }}-${{ matrix.go-version }}-test-container
     strategy:
       fail-fast: false
       matrix:
         arch:
           - amd64 
           - arm64
-        go-version: [1.20, 1.21, 1.22]
-          # distro:
-          #   - "golang:1.22"
-          #   - "golang:1.21"
-          #   - "golang:1.20"
+        go-version: ["1.20"," 1.21", "1.22"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
@@ -81,41 +77,6 @@ jobs:
         with:
           platforms: ${{ matrix.arch }}
 
-      # - name: Docker dependencies
-      #   id: docker_commands
-      #   shell: bash
-      #   run: |
-      #     if [[ ${{ matrix.distro }} == *"alpine"* ]]; then
-      #       echo "deps=apk add --no-cache curl gcc musl-dev gzip openjdk17-jre bash protoc protobuf-dev make file git && " >> "$GITHUB_OUTPUT"
-      #     else
-      #       echo "deps=apt-get update && apt-get install -y openjdk-17-jre file protobuf-compiler git && " >> "$GITHUB_OUTPUT"
-      #     fi
-  
-      # - name: Test (unit)
-      #   run: |
-      #     docker run \
-      #       --rm \
-      #       -v $(pwd):/go/src/github.com/pact-foundation/pact-go \
-      #       -w /go/src/github.com/pact-foundation/pact-go \
-      #       -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
-      #       --platform linux/${{ matrix.arch }} \
-      #       --entrypoint /bin/sh \
-      #       ${{ matrix.distro }} \
-      #       -c '${{ steps.docker_commands.outputs.deps }} \
-      #       make test'
-
-      # - name: Test (pact)
-      #   run: |
-      #     docker run \
-      #       --rm \
-      #       -v $(pwd):/go/src/github.com/pact-foundation/pact-go \
-      #       -w /go/src/github.com/pact-foundation/pact-go \
-      #       -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
-      #       --platform linux/${{ matrix.arch }} \
-      #       --entrypoint /bin/sh \
-      #       ${{ matrix.distro }} \
-      #       -c '${{ steps.docker_commands.outputs.deps }} \
-      #       make pact_local'
       - name: Build amd64 dockerfile 
         run: |
           docker build \
