@@ -134,7 +134,7 @@ jobs:
           docker run \
           --platform linux/${{ matrix.arch }} \
           -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
-          --rm pactfoundation/pact-go-test-${{ matrix.go-version }} make pact
+          --rm pactfoundation/pact-go-test-${{ matrix.go-version }} make pact_local
 
   # finish:
   #   needs: [test,test-containers]
