@@ -67,10 +67,11 @@ jobs:
       matrix:
         arch:
           - amd64 
-          # - arm64
+          - arm64
         distro:
-          - "mcr.microsoft.com/dotnet/sdk:8.0"
-          - "mcr.microsoft.com/dotnet/sdk:8.0-alpine"
+          - "golang:1.22"
+          - "golang:1.21"
+          - "golang:1.20"
 
     steps:
       - uses: actions/checkout@v4
@@ -85,24 +86,36 @@ jobs:
         shell: bash
         run: |
           if [[ ${{ matrix.distro }} == *"alpine"* ]]; then
-            echo "deps=apk add --no-cache curl bash gzip && " >> "$GITHUB_OUTPUT"
+            echo "deps=apk add --no-cache curl gcc musl-dev gzip openjdk17-jre bash protoc protobuf-dev make file && " >> "$GITHUB_OUTPUT"
           else
-            echo "deps=" >> "$GITHUB_OUTPUT"
+            echo "deps=apt-get update && apt-get install -y openjdk-17-jre file protobuf-compiler && " >> "$GITHUB_OUTPUT"
           fi
   
-      - name: Restore, Build & Test
+      - name: Test (unit)
         run: |
           docker run \
             --rm \
             -v $(pwd):/${{ github.workspace }} \
             -w ${{ github.workspace }} \
+            -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
             --platform linux/${{ matrix.arch }} \
             --entrypoint /bin/sh \
             ${{ matrix.distro }} \
             -c '${{ steps.docker_commands.outputs.deps }} \
-            build/download-native-libs.sh && \
-            dotnet restore && dotnet build --no-restore && \
-            dotnet test --no-build --verbosity normal'            
+            make test
+
+      - name: Test (pact)
+        run: |
+          docker run \
+            --rm \
+            -v $(pwd):/${{ github.workspace }} \
+            -w ${{ github.workspace }} \
+            -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
+            --platform linux/${{ matrix.arch }} \
+            --entrypoint /bin/sh \
+            ${{ matrix.distro }} \
+            -c '${{ steps.docker_commands.outputs.deps }} \
+            make pact_local
 
   finish:
     needs: [test,test-containers]
