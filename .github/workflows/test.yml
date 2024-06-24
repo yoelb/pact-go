@@ -86,9 +86,9 @@ jobs:
         shell: bash
         run: |
           if [[ ${{ matrix.distro }} == *"alpine"* ]]; then
-            echo "deps=apk add --no-cache curl gcc musl-dev gzip openjdk17-jre bash protoc protobuf-dev make file && " >> "$GITHUB_OUTPUT"
+            echo "deps=apk add --no-cache curl gcc musl-dev gzip openjdk17-jre bash protoc protobuf-dev make file git && " >> "$GITHUB_OUTPUT"
           else
-            echo "deps=apt-get update && apt-get install -y openjdk-17-jre file protobuf-compiler && " >> "$GITHUB_OUTPUT"
+            echo "deps=apt-get update && apt-get install -y openjdk-17-jre file protobuf-compiler git && " >> "$GITHUB_OUTPUT"
           fi
   
       - name: Test (unit)
